@@ -15,6 +15,7 @@ export default function Home() {
     const [objects, setObjects] = useState<Obj[]>([]);
     const [loading, setLoading] = useState(false);
     const [prompt, setPrompt] = useState('');
+    const [cacheObj, setCacheObj] = useState<Obj | null>(null);
 
     const generate3DModel = async () => {
         if (!prompt) return;
@@ -34,12 +35,24 @@ export default function Home() {
                 url: data.glb_url,
             }));
 
+            setCacheObj(newObjects[0]);
             setObjects((prev) => [...prev, ...newObjects]);
           } catch (error) {
               console.error('Error fetching 3D model:', error);
           } finally {
               setLoading(false);
           }
+        };
+
+        const generateCachedModel = () => {
+            if (cacheObj) {
+                setLoading(true);
+                const randInt3to5 = Math.floor(Math.random() * 3) + 3;
+                for (let i = 0; i < randInt3to5; i++) {
+                    setObjects((prev) => [...prev, cacheObj]);
+                }
+                setLoading(false);
+            }
         };
 
         const RenderModel = React.memo(({ url }: { url: string }) => {
@@ -89,6 +102,13 @@ export default function Home() {
                     style={{ padding: '10px 20px' }}
                 >
                     {loading ? '生成中...' : 'オブジェクトを追加'}
+                </button>
+                <button
+                    onClick={generateCachedModel}
+                    disabled={loading}
+                    style={{ padding: '10px 20px' }}
+                >
+                    {loading ? '生成中...' : 'もっと追加！'}
                 </button>
             </div>
 
