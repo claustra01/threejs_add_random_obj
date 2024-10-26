@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Physics, RigidBody } from '@react-three/rapier';
+import { CuboidCollider, Physics, RigidBody } from '@react-three/rapier';
 import { Plane } from '@react-three/drei';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import * as THREE from 'three';
@@ -27,13 +27,26 @@ export default function Home() {
             });
             const data = await response.text();
 
-            const newObject: Obj = {
+            const newObj1: Obj = {
                 id: `${objects.length}`,
-                position: [Math.random() * 10, 1, Math.random() * 10],
+                position: [Math.random() * 10 - 5, 5, Math.random() * 10 - 5],
+                url: data,
+                // url: "https://assets.meshy.ai/d9ee17ae-73a3-4e14-9aa9-fd1e74126034/tasks/0192c9a1-0800-7f19-a5f1-87db7ac6865d/output/model.glb?Expires=4883500800&Signature=AcgVTwINI7Dn66OxYcU2Dqms0jshRootF1HQWmiCwzkx430sIVOMrElSPM7b7BamXLOBHnS~TjWKa4k430u4xXfZPRWLnK9ytJ8g88Lhbij4i4X1lZIRgCJwY6faRFFyVqVsVHwanZ~pRe5tZ7s65VVH0J6JPRdNjV5Gj4LMcFHeDPQ1dvuCkdDWMDqloRHiNSUf~rXwnJtn4V93UbjyXWqk1hz3KZ5EjhVCjG29D28ChccihouJJ1~jNzS0eeA-HdaFLgiav5FpYJuIq3AFOAKGAHu3MP-xEChyccbS9eL5JKUjM-rGw4LLnLjWpu6ShKTXsoPIeUSH-C5ZVXgLKA__&Key-Pair-Id=KL5I0C8H7HX83",
+            };
+
+            const newObj2: Obj = {
+                id: `${objects.length}`,
+                position: [Math.random() * 10 - 5, 5, Math.random() * 10 - 5],
                 url: data,
             };
 
-            setObjects((prev) => [...prev, newObject]);
+            const newObj3: Obj = {
+                id: `${objects.length}`,
+                position: [Math.random() * 10 - 5, 5, Math.random() * 10 - 5],
+                url: data,
+            };
+
+            setObjects((prev) => [...prev, newObj1, newObj2, newObj3]);
           } catch (error) {
               console.error('Error fetching 3D model:', error);
           } finally {
@@ -41,31 +54,37 @@ export default function Home() {
           }
         };
 
-    const RenderModel = ({ url }: { url: string }) => {
-        const [model, setModel] = useState<THREE.Group | null>(null);
-
-        useEffect(() => {
-            const loader = new GLTFLoader();
-
-            loader.load(
-                url,
-                (gltf) => {
-                    setModel(gltf.scene);
-                },
-                undefined,
-                (error) => {
-                    console.error('Error loading GLB model:', error);
-                }
-            );
-
-            return () => {
-                setModel(null);
-            };
-        }, [url]);
-
-        return model ? <primitive object={model} /> : null;
-    };
-
+        const RenderModel = React.memo(({ url }: { url: string }) => {
+          const [model, setModel] = useState<THREE.Group | null>(null);
+          const [loading, setLoading] = useState(true); // Track loading state
+      
+          useEffect(() => {
+              const loader = new GLTFLoader();
+              loader.load(
+                  url,
+                  (gltf) => {
+                      setModel(gltf.scene);
+                      setLoading(false); // Model loaded
+                  },
+                  undefined,
+                  (error) => {
+                      console.error('Error loading GLB model:', error);
+                      setLoading(false); // Handle error
+                  }
+              );
+      
+              return () => {
+                  setModel(null);
+              };
+          }, [url]);
+      
+          if (loading) {
+              return null; // Prevent rendering until the model is loaded
+          }
+      
+          return model ? <primitive object={model} /> : null;
+      });
+      
     return (
         <div style={{ height: '100vh', width: '100vw' }}>
             <div style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1 }}>
@@ -97,7 +116,8 @@ export default function Home() {
                     </RigidBody>
 
                     {objects.map((obj) => (
-                        <RigidBody key={obj.id} position={obj.position}>
+                        <RigidBody key={obj.id} type="dynamic" position={obj.position}>
+                            <CuboidCollider args={[1, 1, 1]} /> 
                             <RenderModel url={obj.url} />
                         </RigidBody>
                     ))}
