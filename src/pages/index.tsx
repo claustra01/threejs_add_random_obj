@@ -1,87 +1,110 @@
-// pages/index.js
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics, RigidBody } from '@react-three/rapier';
 import { Plane } from '@react-three/drei';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import * as THREE from 'three';
 
 type Obj = {
-  id: string;
-  position: [number, number, number];
-  shape: string;
-}
+    id: string;
+    position: [number, number, number];
+    url: string;
+};
 
 export default function Home() {
-  const [objects, setObjects] = useState<Obj[]>([]);
+    const [objects, setObjects] = useState<Obj[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [prompt, setPrompt] = useState('');
 
-  // ランダムな形状のオブジェクトを追加する関数
-  const addRandomObject = () => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const position = [
-      (Math.random() - 0.5) * 6, // X軸方向でランダム
-      5 + Math.random() * 2,     // Y軸方向で高めの位置
-      (Math.random() - 0.5) * 6, // Z軸方向でランダム
-    ];
+    const generate3DModel = async () => {
+        if (!prompt) return;
 
-    // ランダムな形状を選択
-    const shapeTypes = ['box', 'sphere', 'cone', 'torus'];
-    const shape = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+        setLoading(true);
 
-    setObjects([...objects, { id, position: position as [number, number, number], shape }]);
-  };
+        try {
+            const response = await fetch(`https://9ac9-92-203-99-78.ngrok-free.app/get/3dmodel_url/${encodeURIComponent(prompt)}`, {
+              redirect: 'manual',
+            });
+            // sleep 120s
+            await new Promise((resolve) => setTimeout(resolve, 120000));
+            const data = await response.json();
 
-  // 任意の形状を描画するコンポーネント
-  const RenderShape = ({ shape }: { shape: string }) => {
-    switch (shape) {
-      case 'sphere':
-        return <sphereGeometry args={[0.5, 32, 32]} />;
-      case 'cone':
-        return <coneGeometry args={[0.5, 1, 32]} />;
-      case 'torus':
-        return <torusGeometry args={[0.4, 0.15, 16, 100]} />;
-      default:
-        return <boxGeometry args={[1, 1, 1]} />;
-    }
-  };
+            const newObject: Obj = {
+                id: `${objects.length}`,
+                position: [Math.random() * 10, 1, Math.random() * 10],
+                url: data.glb_url,
+            };
 
-  return (
-    <div style={{ height: '100vh', width: '100vw' }}>
-      <button
-        onClick={addRandomObject}
-        style={{
-          position: 'absolute',
-          top: '10px',
-          left: '10px',
-          padding: '10px 20px',
-          zIndex: 1,
-        }}
-      >
-        オブジェクトを追加
-      </button>
+            setObjects((prev) => [...prev, newObject]);
+        } catch (error) {
+            console.error('Error fetching 3D model:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-      <Canvas camera={{ position: [0, 5, 10], fov: 50 }}>
-        {/* 照明 */}
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[5, 5, 5]} intensity={1} />
+    const RenderModel = ({ url }: { url: string }) => {
+        const [model, setModel] = useState<THREE.Group | null>(null);
 
-        <Physics gravity={[0, -9.81, 0]}>
-          {/* 床 */}
-          <RigidBody type="fixed">
-            <Plane rotation={[-Math.PI / 2, 0, 0]} args={[10, 10]}>
-              <meshStandardMaterial color="lightgray" />
-            </Plane>
-          </RigidBody>
+        useEffect(() => {
+            const loader = new GLTFLoader();
 
-          {/* 動的に生成されたオブジェクト */}
-          {objects.map((obj) => (
-            <RigidBody key={obj.id} position={obj.position}>
-              <mesh>
-                <RenderShape shape={obj.shape} />
-                <meshStandardMaterial color="blue" />
-              </mesh>
-            </RigidBody>
-          ))}
-        </Physics>
-      </Canvas>
-    </div>
-  );
+            loader.load(
+                url,
+                (gltf) => {
+                    setModel(gltf.scene);
+                },
+                undefined,
+                (error) => {
+                    console.error('Error loading GLB model:', error);
+                }
+            );
+
+            return () => {
+                setModel(null);
+            };
+        }, [url]);
+
+        return model ? <primitive object={model} /> : null;
+    };
+
+    return (
+        <div style={{ height: '100vh', width: '100vw' }}>
+            <div style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1 }}>
+                <input
+                    type="text"
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="プロンプトを入力"
+                    style={{ padding: '10px', marginRight: '10px' }}
+                />
+                <button
+                    onClick={generate3DModel}
+                    disabled={loading}
+                    style={{ padding: '10px 20px' }}
+                >
+                    {loading ? '生成中...' : 'オブジェクトを追加'}
+                </button>
+            </div>
+
+            <Canvas camera={{ position: [0, 5, 10], fov: 50 }}>
+                <ambientLight intensity={0.5} />
+                <directionalLight position={[5, 5, 5]} intensity={1} />
+
+                <Physics gravity={[0, -9.81, 0]}>
+                    <RigidBody type="fixed">
+                        <Plane rotation={[-Math.PI / 2, 0, 0]} args={[10, 10]}>
+                            <meshStandardMaterial color="lightgray" />
+                        </Plane>
+                    </RigidBody>
+
+                    {objects.map((obj) => (
+                        <RigidBody key={obj.id} position={obj.position}>
+                            <RenderModel url={obj.url} />
+                        </RigidBody>
+                    ))}
+                </Physics>
+            </Canvas>
+        </div>
+    );
 }
