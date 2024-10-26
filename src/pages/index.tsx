@@ -27,26 +27,14 @@ export default function Home() {
             });
             const data = await response.json();
 
-            const newObj1: Obj = {
-                id: `${objects.length}`,
+            const randInt3to5 = Math.floor(Math.random() * 3) + 3;
+            const newObjects: Obj[] = Array.from({ length: randInt3to5 }, (_, i) => ({
+                id: `${objects.length + i}`,
                 position: [Math.random() * 10 - 5, 5, Math.random() * 10 - 5],
                 url: data.glb_url,
-                // url: "https://assets.meshy.ai/d9ee17ae-73a3-4e14-9aa9-fd1e74126034/tasks/0192c9a1-0800-7f19-a5f1-87db7ac6865d/output/model.glb?Expires=4883500800&Signature=AcgVTwINI7Dn66OxYcU2Dqms0jshRootF1HQWmiCwzkx430sIVOMrElSPM7b7BamXLOBHnS~TjWKa4k430u4xXfZPRWLnK9ytJ8g88Lhbij4i4X1lZIRgCJwY6faRFFyVqVsVHwanZ~pRe5tZ7s65VVH0J6JPRdNjV5Gj4LMcFHeDPQ1dvuCkdDWMDqloRHiNSUf~rXwnJtn4V93UbjyXWqk1hz3KZ5EjhVCjG29D28ChccihouJJ1~jNzS0eeA-HdaFLgiav5FpYJuIq3AFOAKGAHu3MP-xEChyccbS9eL5JKUjM-rGw4LLnLjWpu6ShKTXsoPIeUSH-C5ZVXgLKA__&Key-Pair-Id=KL5I0C8H7HX83",
-            };
+            }));
 
-            const newObj2: Obj = {
-                id: `${objects.length}`,
-                position: [Math.random() * 10 - 5, 5, Math.random() * 10 - 5],
-                url: data.glb_url,
-            };
-
-            const newObj3: Obj = {
-                id: `${objects.length}`,
-                position: [Math.random() * 10 - 5, 5, Math.random() * 10 - 5],
-                url: data.glb_url,
-            };
-
-            setObjects((prev) => [...prev, newObj1, newObj2, newObj3]);
+            setObjects((prev) => [...prev, ...newObjects]);
           } catch (error) {
               console.error('Error fetching 3D model:', error);
           } finally {
