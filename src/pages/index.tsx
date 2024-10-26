@@ -25,8 +25,6 @@ export default function Home() {
             const response = await fetch(`http://localhost:8000/get/3dmodel_url/${encodeURIComponent(prompt)}`, {
               redirect: 'manual',
             });
-            // sleep 120s
-            await new Promise((resolve) => setTimeout(resolve, 120000));
             const data = await response.json();
 
             const newObject: Obj = {
@@ -36,12 +34,12 @@ export default function Home() {
             };
 
             setObjects((prev) => [...prev, newObject]);
-        } catch (error) {
-            console.error('Error fetching 3D model:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+          } catch (error) {
+              console.error('Error fetching 3D model:', error);
+          } finally {
+              setLoading(false);
+          }
+        };
 
     const RenderModel = ({ url }: { url: string }) => {
         const [model, setModel] = useState<THREE.Group | null>(null);
