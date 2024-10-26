@@ -99,7 +99,7 @@ export default function Home() {
                 <button
                     onClick={generate3DModel}
                     disabled={loading}
-                    style={{ padding: '10px 20px' }}
+                    style={{ padding: '10px 20px', marginRight: '10px' }}
                 >
                     {loading ? '生成中...' : 'オブジェクトを追加'}
                 </button>
