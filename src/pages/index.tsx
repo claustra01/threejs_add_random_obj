@@ -23,14 +23,14 @@ export default function Home() {
 
         try {
             const response = await fetch(`http://localhost:8000/get/3dmodel_url/${encodeURIComponent(prompt)}`, {
-              redirect: 'manual',
+              mode: 'no-cors',
             });
-            const data = await response.json();
+            const data = await response.text();
 
             const newObject: Obj = {
                 id: `${objects.length}`,
                 position: [Math.random() * 10, 1, Math.random() * 10],
-                url: data.glb_url,
+                url: data,
             };
 
             setObjects((prev) => [...prev, newObject]);
