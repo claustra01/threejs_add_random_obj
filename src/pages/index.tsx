@@ -26,11 +26,11 @@ export default function Home() {
     const shapeTypes = ['box', 'sphere', 'cone', 'torus'];
     const shape = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
 
-    setObjects([...objects, { id, position, shape }]);
+    setObjects([...objects, { id, position: position as [number, number, number], shape }]);
   };
 
   // 任意の形状を描画するコンポーネント
-  const RenderShape = ({ shape }) => {
+  const RenderShape = ({ shape }: { shape: string }) => {
     switch (shape) {
       case 'sphere':
         return <sphereGeometry args={[0.5, 32, 32]} />;
