@@ -48,8 +48,13 @@ export default function Home() {
             if (cacheObj) {
                 setLoading(true);
                 const randInt3to5 = Math.floor(Math.random() * 3) + 3;
+                const newObjects: Obj[] = Array.from({ length: randInt3to5 }, (_, i) => ({
+                    id: `${objects.length + i}`,
+                    position: [Math.random() * 10 - 5, 5, Math.random() * 10 - 5],
+                    url: cacheObj.url,
+                }));
                 for (let i = 0; i < randInt3to5; i++) {
-                    setObjects((prev) => [...prev, cacheObj]);
+                    setObjects((prev) => [...prev, ...newObjects]);
                 }
                 setLoading(false);
             }
