@@ -22,7 +22,7 @@ export default function Home() {
         setLoading(true);
 
         try {
-            const response = await fetch(`https://9ac9-92-203-99-78.ngrok-free.app/get/3dmodel_url/${encodeURIComponent(prompt)}`, {
+            const response = await fetch(`http://localhost:8000/get/3dmodel_url/${encodeURIComponent(prompt)}`, {
               redirect: 'manual',
             });
             // sleep 120s
